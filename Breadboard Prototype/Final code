@@ -1,0 +1,357 @@
+#include <driver/i2s.h>
+#include <math.h>
+#include <FastLED.h>
+#include "audio_data.h" // Your voice message array
+
+// ==========================================
+// FASTLED DISPLAY & RING SETTINGS
+// ==========================================
+#define DISP_PIN 37       
+#define NUM_DISP_LEDS 48
+#define RING_PIN 36      
+#define NUM_RING_LEDS 66
+#define BRIGHTNESS 100
+
+CRGB dispLeds[NUM_DISP_LEDS];
+CRGB ringLeds[NUM_RING_LEDS];
+
+// --- 7-SEGMENT PATTERNS & MAPPING ---
+const byte digitPatterns[10][7] = {
+  {1, 1, 1, 1, 1, 1, 0}, {0, 1, 1, 0, 0, 0, 0}, {1, 1, 0, 1, 1, 0, 1}, 
+  {1, 1, 1, 1, 0, 0, 1}, {0, 1, 1, 0, 0, 1, 1}, {1, 0, 1, 1, 0, 1, 1}, 
+  {1, 0, 1, 1, 1, 1, 1}, {1, 1, 1, 0, 0, 0, 0}, {1, 1, 1, 1, 1, 1, 1}, 
+  {1, 1, 1, 1, 0, 1, 1}
+};
+
+const int d1_B[3] = {0, 1, 2}; const int d1_C[3] = {3, 4, 5};
+const int d2[7][3] = {{11, 10, 9}, {8, 7, 6}, {18, 19, 20}, {23, 22, 21}, {26, 25, 24}, {12, 13, 14}, {15, 16, 17}};
+const int d3[7][3] = {{30, 31, 32}, {33, 34, 35}, {47, 46, 45}, {42, 43, 44}, {39, 40, 41}, {29, 28, 27}, {38, 37, 36}};
+
+// ==========================================
+// I2S AUDIO SETTINGS & PINS
+// ==========================================
+// I2S0 : Mic 1 + Mic 2
+#define I2S0_MIC_SCK  6
+#define I2S0_MIC_WS   7
+#define I2S0_MIC_SD   15
+
+// I2S1 : Mic 3 & Speaker (Multiplexed)
+#define I2S1_SHARED_SCK  18
+#define I2S1_SHARED_WS   17
+#define I2S1_MIC_SD      8 
+#define I2S_SPK_DOUT     16
+
+float calibration_offset = -14.0f;
+float user_threshold = 0.0f;
+bool threshold_set = false;
+
+// --- TIME TRACKING VARIABLES (5 Hits / 20 Seconds) ---
+unsigned long hitTimes[5] = {0, 0, 0, 0, 0}; 
+int hitCount = 0;                            
+
+// ==========================================
+// AUDIO INIT FUNCTIONS
+// ==========================================
+void initMicPair() {
+  i2s_config_t cfg = {
+    .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
+    .sample_rate = 16000,
+    .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
+    .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
+    .communication_format = I2S_COMM_FORMAT_STAND_I2S,
+    .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
+    .dma_buf_count = 4,
+    .dma_buf_len = 256,
+    .use_apll = false,
+    .tx_desc_auto_clear = false,
+    .fixed_mclk = 0
+  };
+  i2s_pin_config_t pins = {
+    .bck_io_num = I2S0_MIC_SCK,
+    .ws_io_num = I2S0_MIC_WS,
+    .data_out_num = I2S_PIN_NO_CHANGE,
+    .data_in_num = I2S0_MIC_SD
+  };
+  i2s_driver_install(I2S_NUM_0, &cfg, 0, NULL);
+  i2s_set_pin(I2S_NUM_0, &pins);
+}
+
+void initMic3() {
+  i2s_config_t cfg = {
+    .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
+    .sample_rate = 16000,
+    .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
+    .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
+    .communication_format = I2S_COMM_FORMAT_STAND_I2S,
+    .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
+    .dma_buf_count = 4,
+    .dma_buf_len = 256,
+    .use_apll = false,
+    .tx_desc_auto_clear = false,
+    .fixed_mclk = 0
+  };
+  i2s_pin_config_t pins = {
+    .bck_io_num = I2S1_SHARED_SCK,
+    .ws_io_num = I2S1_SHARED_WS,
+    .data_out_num = I2S_PIN_NO_CHANGE,
+    .data_in_num = I2S1_MIC_SD
+  };
+  i2s_driver_install(I2S_NUM_1, &cfg, 0, NULL);
+  i2s_set_pin(I2S_NUM_1, &pins);
+}
+
+void initSpeaker() {
+  i2s_config_t spk_config = {
+    .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
+    .sample_rate = 44100, 
+    .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
+    .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
+    .communication_format = I2S_COMM_FORMAT_STAND_I2S,
+    .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
+    .dma_buf_count = 8,
+    .dma_buf_len = 64,
+    .use_apll = false,
+    .tx_desc_auto_clear = true
+  };
+  i2s_pin_config_t spk_pins = {
+    .bck_io_num = I2S1_SHARED_SCK,
+    .ws_io_num = I2S1_SHARED_WS,
+    .data_out_num = I2S_SPK_DOUT,
+    .data_in_num = I2S_PIN_NO_CHANGE
+  };
+  i2s_driver_install(I2S_NUM_1, &spk_config, 0, NULL);
+  i2s_set_pin(I2S_NUM_1, &spk_pins);
+}
+
+void playVoiceMessage() {
+  size_t bytes_written;
+  int volume_multiplier = 2; 
+  int16_t* audio_samples = (int16_t*)(audiomass_output + 44);
+  size_t sample_count = (sizeof(audiomass_output) - 44) / 2;
+  
+  for (size_t i = 0; i < sample_count; i++) {
+    int32_t amplified_sample = audio_samples[i] * volume_multiplier;
+    if (amplified_sample > 32767) amplified_sample = 32767;
+    if (amplified_sample < -32768) amplified_sample = -32768;
+    int16_t final_sample = (int16_t)amplified_sample;
+    i2s_write(I2S_NUM_1, &final_sample, sizeof(int16_t), &bytes_written, portMAX_DELAY);
+  }
+}
+
+float rmsToDb(float mean_square) {
+  if (mean_square <= 0.0f) return -999.0f;
+  return 10.0f * log10(mean_square) + calibration_offset;
+}
+
+// ==========================================
+// FASTLED DRAWING FUNCTIONS
+// ==========================================
+void drawNumber(int num, CRGB color) {
+  if (num > 100) num = 100; if (num < 0) num = 0;
+  int hundreds = num / 100; int tens = (num / 10) % 10; int units = num % 10;
+
+  if (hundreds == 1) {
+    for(int i = 0; i < 3; i++) dispLeds[d1_B[i]] = color;
+    for(int i = 0; i < 3; i++) dispLeds[d1_C[i]] = color;
+  }
+  if (num >= 10 || hundreds == 1) { 
+    for (int seg = 0; seg < 7; seg++) {
+      if (digitPatterns[tens][seg] == 1) {
+        for (int i = 0; i < 3; i++) dispLeds[d2[seg][i]] = color;
+      }
+    }
+  }
+  for (int seg = 0; seg < 7; seg++) {
+    if (digitPatterns[units][seg] == 1) {
+      for (int i = 0; i < 3; i++) dispLeds[d3[seg][i]] = color;
+    }
+  }
+}
+
+void drawRing(int num, CRGB color) {
+  if (num > 100) num = 100; if (num < 0) num = 0;
+  int ledsToLight = map(num, 0, 100, 0, NUM_RING_LEDS);
+  if (num > 0 && ledsToLight == 0) ledsToLight = 1;
+  for (int i = 0; i < ledsToLight; i++) ringLeds[i] = color; 
+}
+
+// ==========================================
+// MAIN SETUP
+// ==========================================
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+
+  Serial.println("Z.O.N.E. Full System Test (LEDs + Mics + Speaker)");
+  
+  // Init LEDs
+  FastLED.addLeds<WS2812B, DISP_PIN, GRB>(dispLeds, NUM_DISP_LEDS);
+  FastLED.addLeds<WS2812B, RING_PIN, GRB>(ringLeds, NUM_RING_LEDS);
+  FastLED.setMaxPowerInVoltsAndMilliamps(5, 2000); 
+  FastLED.setBrightness(BRIGHTNESS);
+  FastLED.clear();
+  FastLED.show();
+  
+  // Init Audio
+  initMicPair();
+  initMic3();
+  pinMode(I2S_SPK_DOUT, OUTPUT);
+  digitalWrite(I2S_SPK_DOUT, LOW);
+
+  Serial.println("=================================");
+  Serial.println("Type the threshold level (dB) and press Enter:");
+}
+
+// ==========================================
+// MAIN LOOP
+// ==========================================
+void loop() {
+  if (!threshold_set) {
+    if (Serial.available() > 0) {
+      user_threshold = Serial.parseFloat();
+      while (Serial.available() > 0) Serial.read();
+
+      if (user_threshold > 0.0f) {
+        threshold_set = true;
+        Serial.print("Threshold locked at: ");
+        Serial.println(user_threshold);
+        Serial.println("Monitoring started...");
+        Serial.println("=================================");
+      }
+    }
+    return;
+  }
+
+  // ---------- 1. Read Microphones ----------
+  int32_t pairBuf[128];
+  size_t bytesRead0 = 0;
+  i2s_read(I2S_NUM_0, pairBuf, sizeof(pairBuf), &bytesRead0, portMAX_DELAY);
+  int sampleCount0 = bytesRead0 / sizeof(int32_t);
+  int frameCount = sampleCount0 / 2;
+
+  float msMic1 = 0.0f; float msMic2 = 0.0f;
+  for (int i = 0; i < frameCount; i++) {
+    int32_t leftSample  = pairBuf[2 * i]     >> 14;
+    int32_t rightSample = pairBuf[2 * i + 1] >> 14;
+    msMic1 += (float)leftSample * leftSample;
+    msMic2 += (float)rightSample * rightSample;
+  }
+  if (frameCount > 0) { msMic1 /= frameCount; msMic2 /= frameCount; }
+
+  int32_t mic3Buf[64];
+  size_t bytesRead1 = 0;
+  i2s_read(I2S_NUM_1, mic3Buf, sizeof(mic3Buf), &bytesRead1, portMAX_DELAY);
+  int sampleCount1 = bytesRead1 / sizeof(int32_t);
+  float msMic3 = 0.0f;
+  for (int i = 0; i < sampleCount1; i++) {
+    int32_t s = mic3Buf[i] >> 14;
+    msMic3 += (float)s * s;
+  }
+  if (sampleCount1 > 0) { msMic3 /= sampleCount1; }
+
+  // ---------- 2. Calculate Noise Percentage ----------
+  bool error_found = false;
+  if (msMic1 <= 0.0f || msMic2 <= 0.0f || msMic3 <= 0.0f) error_found = true;
+
+  if (!error_found) {
+    float dB1 = rmsToDb(msMic1);
+    float dB2 = rmsToDb(msMic2);
+    float dB3 = rmsToDb(msMic3);
+    float average_dB = (dB1 + dB2 + dB3) / 3.0f;
+
+    float percentage = (average_dB / user_threshold) * 100.0f;
+    int displayVal = (int)percentage;
+    
+    // Clamp limits for visual safety
+    if (displayVal < 0) displayVal = 0;
+    if (displayVal > 100) displayVal = 100;
+
+    // ---------- 3. Update LED Visuals ----------
+    CRGB thresholdColor;
+    if (displayVal <= 50) {
+      thresholdColor = CRGB::Green;
+    } else if (displayVal < 80) {
+      thresholdColor = CRGB::Yellow;
+    } else if (displayVal < 100) {
+      thresholdColor = CRGB::OrangeRed;
+    } else {
+      thresholdColor = CRGB::Red; 
+    }
+
+    FastLED.clear(); 
+    drawNumber(displayVal, thresholdColor); 
+    drawRing(displayVal, thresholdColor);   
+    FastLED.show(); 
+
+    // ---------- 4. Logic & Audio Handoff ----------
+    if (displayVal == 100) {
+      Serial.println("Hit 100!");
+
+      // Shift old timestamps down and save the new one
+      for (int i = 0; i < 4; i++) {
+        hitTimes[i] = hitTimes[i+1];
+      }
+      hitTimes[4] = millis();
+      if (hitCount < 5) hitCount++;
+
+      // Check if we hit 5 times AND the time difference is <= 20,000ms
+      if (hitCount == 5 && (hitTimes[4] - hitTimes[0] <= 20000)) {
+        
+        Serial.println(">>>> ALARM: 5 HITS IN 20 SECONDS! <<<<");
+        
+        // (Note: The LEDs are already frozen solid RED at this point, which is perfect for the alarm state!)
+
+        // Pause Mics
+        i2s_stop(I2S_NUM_0); 
+        i2s_stop(I2S_NUM_1);
+        delay(10); 
+        i2s_driver_uninstall(I2S_NUM_1);
+        delay(10);
+
+        // Play Speaker
+        initSpeaker();
+        delay(50); 
+        playVoiceMessage();
+        delay(200);
+
+        // Teardown Speaker & Re-clamp
+        i2s_stop(I2S_NUM_1);
+        delay(10);
+        i2s_driver_uninstall(I2S_NUM_1);
+        delay(10);
+        pinMode(I2S_SPK_DOUT, OUTPUT);
+        digitalWrite(I2S_SPK_DOUT, LOW);
+
+        // Cooldown Period
+        Serial.println(">>> Cooldown activated. Waiting 5 seconds... <<<");
+        delay(5000); 
+
+        // Restore Mics & Flush Start-up Spikes
+        initMic3();
+        i2s_start(I2S_NUM_0);
+        Serial.println(">>> Stabilizing mics and flushing startup spikes... <<<");
+        delay(5000); 
+
+        size_t dummyBytes;
+        int32_t dummyBuf[256];
+        i2s_read(I2S_NUM_0, dummyBuf, sizeof(dummyBuf), &dummyBytes, 100 / portTICK_PERIOD_MS);
+        i2s_read(I2S_NUM_1, dummyBuf, sizeof(dummyBuf), &dummyBytes, 100 / portTICK_PERIOD_MS);
+
+        Serial.println(">>> Alarm complete. Mics re-enabled. Resuming monitoring. <<<");
+        
+        // Reset the hit counter so it requires 5 completely new hits to trigger again
+        hitCount = 0; 
+        
+      } else {
+        // It hit 100, but hasn't met the 5-in-20 rule yet. Just wait a beat.
+        delay(200); 
+      }
+    } else {
+      // Normal monitoring printout
+      Serial.println(displayVal);
+      delay(500); // Small loop delay for standard monitoring
+    }
+  } else {
+      delay(500); // Delay if error found
+  }
+}
