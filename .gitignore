@@ -1,0 +1,21 @@
+﻿# Node / Next.js dependencies and caches
+**/node_modules/
+**/.next/
+**/out/
+.pnpm-store/
+
+# Android build outputs & caches
+**/android/.gradle/
+**/android/app/build/
+**/android/build/
+**/android/local.properties
+**/android/.kotlin/
+**/*.iml
+**/.idea/
+
+# Environment secrets
+**/.env*.local
+
+# System files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,354 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Dark visionOS background */
+  --background: #06030A;
+  --foreground: #FFFFFF;
+  
+  /* Frosted Glassmorphism card variables */
+  --card: rgba(25, 15, 45, 0.55);
+  --card-foreground: #FFFFFF;
+  --popover: #161224;
+  --popover-foreground: #FFFFFF;
+  
+  /* Glowing Purple/Indigo highlights */
+  --primary: #8E79F4;
+  --primary-foreground: #FFFFFF;
+  
+  /* Translucent Surfaces */
+  --secondary: rgba(255, 255, 255, 0.05);
+  --secondary-foreground: #FFFFFF;
+  
+  /* Muted Text */
+  --muted: rgba(255, 255, 255, 0.05);
+  --muted-foreground: rgba(255, 255, 255, 0.5);
+  
+  /* Subtle Hovers */
+  --accent: #8E79F4;
+  --accent-foreground: #FFFFFF;
+  
+  /* Destructive/Offline (Red) */
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  
+  /* Fine borders */
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #8E79F4;
+  
+  /* Chart Colors */
+  --chart-1: #8E79F4;
+  --chart-2: #22C55E;
+  --chart-3: #F97316;
+  --chart-4: #EF4444;
+  --chart-5: rgba(255, 255, 255, 0.1);
+  
+  --radius: 1rem;
+  
+  /* Sidebar */
+  --sidebar: rgba(255, 255, 255, 0.02);
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #8E79F4;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: rgba(255, 255, 255, 0.05);
+  --sidebar-accent-foreground: #8E79F4;
+  --sidebar-border: rgba(255, 255, 255, 0.05);
+  --sidebar-ring: #8E79F4;
+  
+  /* System states */
+  --success: #8E79F4; /* Purple for active state dots */
+  --success-foreground: #FFFFFF;
+  --warning: #FDBA74;
+  --warning-foreground: #1A1A1A;
+}
+
+.dark {
+  --background: #06030A;
+  --foreground: #FFFFFF;
+  --card: rgba(25, 15, 45, 0.55);
+  --card-foreground: #FFFFFF;
+  --popover: #161224;
+  --popover-foreground: #FFFFFF;
+  --primary: #8E79F4;
+  --primary-foreground: #FFFFFF;
+  --secondary: rgba(255, 255, 255, 0.05);
+  --secondary-foreground: #FFFFFF;
+  --muted: rgba(255, 255, 255, 0.05);
+  --muted-foreground: rgba(255, 255, 255, 0.5);
+  --accent: #8E79F4;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #8E79F4;
+  --sidebar: rgba(255, 255, 255, 0.02);
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #8E79F4;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: rgba(255, 255, 255, 0.05);
+  --sidebar-accent-foreground: #8E79F4;
+  --sidebar-border: rgba(255, 255, 255, 0.05);
+  --sidebar-ring: #8E79F4;
+  --success: #8E79F4;
+  --success-foreground: #FFFFFF;
+  --warning: #FDBA74;
+  --warning-foreground: #1A1A1A;
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply text-foreground min-h-screen font-sans;
+    background-color: #06030A;
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-attachment: fixed;
+    position: relative;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* ==========================================
+   ANIMATED GLOWING AMBIENT BLOB ORBS
+   ========================================== */
+@keyframes blob-one {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(50px, -60px) scale(1.1); }
+  66% { transform: translate(-30px, 30px) scale(0.95); }
+}
+@keyframes blob-two {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(-40px, 40px) scale(1.15); }
+}
+
+.ambient-blob-1 {
+  position: absolute;
+  top: 5%;
+  left: 15%;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(116, 98, 233, 0.38) 0%, transparent 70%);
+  filter: blur(60px);
+  animation: blob-one 14s infinite ease-in-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ambient-blob-2 {
+  position: absolute;
+  bottom: 5%;
+  right: 10%;
+  width: 550px;
+  height: 550px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.18) 0%, transparent 70%);
+  filter: blur(70px);
+  animation: blob-two 16s infinite ease-in-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ambient-blob-3 {
+  position: absolute;
+  top: 35%;
+  right: 35%;
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(88, 86, 214, 0.32) 0%, transparent 70%);
+  filter: blur(50px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ==========================================
+   STYLE 1: DARK GLASSMORPHIC PANELS & CARDS
+   ========================================== */
+.glass-card {
+  background: linear-gradient(135deg, rgba(25, 15, 45, 0.55) 0%, rgba(15, 10, 30, 0.35) 100%) !important;
+  backdrop-filter: blur(35px);
+  -webkit-backdrop-filter: blur(35px);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), 
+              inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.glass-card:hover {
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  background: linear-gradient(135deg, rgba(25, 15, 45, 0.65) 0%, rgba(15, 10, 30, 0.4) 100%) !important;
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6), 0 0 30px rgba(88, 86, 214, 0.25);
+  transform: translateY(-2px);
+}
+
+.glass-sidebar {
+  background: rgba(255, 255, 255, 0.02) !important;
+  backdrop-filter: blur(35px) !important;
+  -webkit-backdrop-filter: blur(35px) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.02) !important;
+  backdrop-filter: blur(35px) !important;
+  -webkit-backdrop-filter: blur(35px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ==========================================
+   STYLE 2: NEUMORPHIC SUNKEN GLASS TRAY
+   ========================================== */
+.glass-neumorphic-inset {
+  background: rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.4), 
+              inset -3px -3px 6px rgba(255, 255, 255, 0.02) !important;
+}
+
+/* ==========================================
+   STYLE 3: CLAYMORPHIC NEON BUTTONS
+   ========================================== */
+.clay-gradient-btn {
+  background: linear-gradient(135deg, #8E79F4 0%, #5856D6 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0px 8px 18px rgba(88, 86, 214, 0.4), 
+              inset 2px 2.5px 4px rgba(255, 255, 255, 0.5), 
+              inset -2px -2.5px 4px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.2s ease-in-out;
+  border: 0 !important;
+}
+.clay-gradient-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0px 10px 22px rgba(88, 86, 214, 0.5), 
+              inset 3px 3.5px 5px rgba(255, 255, 255, 0.6), 
+              inset -2px -2.5px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+.clay-switch-active {
+  background: linear-gradient(135deg, #8E79F4 0%, #5856D6 100%) !important;
+  box-shadow: 0px 4px 8px rgba(88, 86, 214, 0.3),
+              inset 1.5px 2px 3px rgba(255, 255, 255, 0.4),
+              inset -1.5px -2px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
+.clay-switch-thumb {
+  background: #FFFFFF !important;
+  box-shadow: 0px 2px 4px rgba(88, 86, 214, 0.3) !important;
+}
+
+/* Radar online dot pulses */
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+.radar-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: #8E79F4;
+  animation: radar-pulse 2.2s infinite ease-out;
+}
+
+/* Soundwave Equalizer Animators */
+@keyframes eq-bounce-1 {
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+@keyframes eq-bounce-2 {
+  0%, 100% { height: 8px; }
+  50% { height: 20px; }
+}
+@keyframes eq-bounce-3 {
+  0%, 100% { height: 6px; }
+  50% { height: 14px; }
+}
+.eq-bar-1 { animation: eq-bounce-1 0.8s infinite ease-in-out; }
+.eq-bar-2 { animation: eq-bounce-2 0.6s infinite ease-in-out; }
+.eq-bar-3 { animation: eq-bounce-3 0.7s infinite ease-in-out; }

@@ -1,0 +1,39 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100" height="100" rx="20" fill="#06030A" />
+  <defs>
+    <linearGradient id="web-logo-top-grad" x1="15" y1="20" x2="75" y2="20" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A232A7" />
+      <stop offset="1" stop-color="#732598" />
+    </linearGradient>
+    <linearGradient id="web-logo-diag-grad" x1="75" y1="20" x2="25" y2="80" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8F289E" />
+      <stop offset="1" stop-color="#3B2684" />
+    </linearGradient>
+    <linearGradient id="web-logo-bottom-grad" x1="25" y1="80" x2="85" y2="80" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#30247C" />
+      <stop offset="1" stop-color="#1C1862" />
+    </linearGradient>
+  </defs>
+
+  <!-- Ripples -->
+  <g opacity="0.10">
+    <path d="M25 80H85" stroke="url(#web-logo-bottom-grad)" stroke-width="40" stroke-linecap="butt" />
+    <path d="M15 20H75" stroke="url(#web-logo-top-grad)" stroke-width="40" stroke-linecap="butt" />
+    <path d="M75 20L25 80" stroke="url(#web-logo-diag-grad)" stroke-width="44" stroke-linecap="round" />
+  </g>
+  <g opacity="0.20">
+    <path d="M25 80H85" stroke="url(#web-logo-bottom-grad)" stroke-width="30" stroke-linecap="butt" />
+    <path d="M15 20H75" stroke="url(#web-logo-top-grad)" stroke-width="30" stroke-linecap="butt" />
+    <path d="M75 20L25 80" stroke="url(#web-logo-diag-grad)" stroke-width="34" stroke-linecap="round" />
+  </g>
+  <g opacity="0.35">
+    <path d="M25 80H85" stroke="url(#web-logo-bottom-grad)" stroke-width="22" stroke-linecap="butt" />
+    <path d="M15 20H75" stroke="url(#web-logo-top-grad)" stroke-width="22" stroke-linecap="butt" />
+    <path d="M75 20L25 80" stroke="url(#web-logo-diag-grad)" stroke-width="26" stroke-linecap="round" />
+  </g>
+
+  <!-- Main Z -->
+  <path d="M25 80H85" stroke="url(#web-logo-bottom-grad)" stroke-width="16" stroke-linecap="butt" />
+  <path d="M15 20H75" stroke="url(#web-logo-top-grad)" stroke-width="16" stroke-linecap="butt" />
+  <path d="M75 20L25 80" stroke="url(#web-logo-diag-grad)" stroke-width="20" stroke-linecap="round" />
+</svg>

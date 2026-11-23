@@ -1,0 +1,28 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "zones": {
+          "$zoneId": {
+            "devices": {
+              "$deviceMac": {
+                // Allow the paired ESP32 (signed in anonymously) to sync its status, heartbeats & violations
+                ".read": "auth != null",
+                ".write": "auth != null"
+              }
+            }
+          }
+        }
+      }
+    },
+    "devices": {
+      "$deviceMac": {
+        // Allow anyone authenticated to read/write pairing registration details
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}

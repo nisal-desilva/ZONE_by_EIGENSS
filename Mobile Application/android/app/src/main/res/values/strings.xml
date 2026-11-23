@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Z.O.N.E.</string>
+    <string name="title_activity_main">Z.O.N.E.</string>
+    <string name="package_name">com.zone.dashboard</string>
+    <string name="custom_url_scheme">com.zone.dashboard</string>
+</resources>

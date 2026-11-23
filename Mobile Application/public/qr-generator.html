@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZONE QR Code Generator | Eigenss</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #1a1d20;
+      --card-bg: rgba(34, 38, 41, 0.7);
+      --border-color: rgba(250, 237, 38, 0.2);
+      --border-hover: rgba(250, 237, 38, 0.4);
+      --primary: #FAED26;
+      --primary-hover: #e5d922;
+      --text-main: #ffffff;
+      --text-muted: #9ba3af;
+      --input-bg: #111315;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      background-image: 
+        radial-gradient(ellipse at 50% 0%, rgba(250, 237, 38, 0.08), transparent 70%),
+        radial-gradient(ellipse at 0% 100%, rgba(255, 255, 255, 0.02), transparent 50%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    /* Background noise effect */
+    .noise {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      content: "";
+      opacity: 0.02;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      position: relative;
+      z-index: 10;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo-container {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(250, 237, 38, 0.2), rgba(250, 237, 38, 0.05));
+      border: 1px solid var(--border-color);
+      box-shadow: 0 0 25px rgba(250, 237, 38, 0.15);
+      margin-bottom: 15px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      color: var(--primary);
+      text-shadow: 0 0 10px rgba(250, 237, 38, 0.4);
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      letter-spacing: -0.5px;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .subtitle span {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+      transition: border-color 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: var(--border-hover);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 15px;
+      color: var(--text-main);
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(250, 237, 38, 0.15);
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Tabs/Format styling */
+    .tabs {
+      display: grid;
+      grid-template-cols: repeat(3, 1fr);
+      background: var(--input-bg);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin-bottom: 25px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: rgba(250, 237, 38, 0.15);
+      color: var(--primary);
+    }
+
+    .btn-generate {
+      width: 100%;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(250, 237, 38, 0.2);
+    }
+
+    .btn-generate:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 25px rgba(250, 237, 38, 0.35);
+    }
+
+    .btn-generate:active {
+      transform: translateY(1px);
+    }
+
+    /* Result Area styling */
+    .result-area {
+      margin-top: 30px;
+      padding-top: 30px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .qr-frame {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+
+    .qr-frame img {
+      display: block;
+      width: 200px;
+      height: 200px;
+    }
+
+    .qr-data-preview {
+      background: var(--input-bg);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--primary);
+      word-break: break-all;
+      max-width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .btn-download {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-download:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      color: rgba(255, 255, 255, 0.2);
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+  
+  <div class="container">
+    <header>
+      <div class="logo-container">Z</div>
+      <h1>ZONE QR Code Generator</h1>
+      <p class="subtitle">Helper tool by <span>Eigenss</span> for hardware testing</p>
+    </header>
+
+    <div class="card">
+      <div class="form-group">
+        <label for="mac">Device MAC Address</label>
+        <input type="text" id="mac" placeholder="e.g. 24:0A:C4:A1:B2:C3" autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label for="pin">Pairing PIN</label>
+        <input type="text" id="pin" placeholder="e.g. 123456" maxlength="8" autocomplete="off">
+      </div>
+
+      <label>QR Schema Format</label>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="setFormat('url')">URL (Recommended)</button>
+        <button class="tab-btn" onclick="setFormat('csv')">CSV</button>
+        <button class="tab-btn" onclick="setFormat('json')">JSON</button>
+      </div>
+
+      <button class="btn-generate" onclick="generateQR()">Generate Pairing QR</button>
+
+      <div class="result-area" id="resultArea">
+        <div class="qr-frame">
+          <img id="qrImage" src="" alt="QR Code">
+        </div>
+        <div class="qr-data-preview" id="qrPreview"></div>
+        <a id="downloadBtn" href="" download="zone-pairing-qr.png" class="btn-download">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download Image
+        </a>
+      </div>
+    </div>
+
+    <footer>
+      ZONE SECURITY SYSTEM UTILITIES
+    </footer>
+  </div>
+
+  <script>
+    let selectedFormat = 'url';
+
+    function setFormat(format) {
+      selectedFormat = format;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+    }
+
+    // Format MAC Address on input
+    document.getElementById('mac').addEventListener('input', function (e) {
+      let value = e.target.value.replace(/[^0-9a-fA-F]/g, '');
+      if (value.length > 12) {
+        value = value.slice(0, 12);
+      }
+      // Add colons
+      let formatted = '';
+      for (let i = 0; i < value.length; i++) {
+        if (i > 0 && i % 2 === 0) {
+          formatted += ':';
+        }
+        formatted += value[i];
+      }
+      e.target.value = formatted.toUpperCase();
+    });
+
+    // Format PIN on input (only numbers)
+    document.getElementById('pin').addEventListener('input', function (e) {
+      e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    });
+
+    function generateQR() {
+      const macInput = document.getElementById('mac').value.trim();
+      const pinInput = document.getElementById('pin').value.trim();
+
+      if (!macInput) {
+        alert('Please enter a MAC address');
+        return;
+      }
+      if (!pinInput) {
+        alert('Please enter a pairing PIN');
+        return;
+      }
+
+      // Clean MAC (remove colons)
+      const cleanMac = macInput.replace(/:/g, '').toUpperCase();
+      let payload = '';
+
+      if (selectedFormat === 'url') {
+        payload = `zone://pair?mac=${cleanMac}&pin=${pinInput}`;
+      } else if (selectedFormat === 'csv') {
+        payload = `${cleanMac},${pinInput}`;
+      } else if (selectedFormat === 'json') {
+        payload = JSON.stringify({ mac: cleanMac, pin: pinInput });
+      }
+
+      // Generate using qrserver
+      const size = 300;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(payload)}`;
+      
+      const qrImage = document.getElementById('qrImage');
+      const resultArea = document.getElementById('resultArea');
+      const qrPreview = document.getElementById('qrPreview');
+      const downloadBtn = document.getElementById('downloadBtn');
+
+      qrImage.src = qrUrl;
+      qrPreview.innerText = payload;
+      
+      // Make it downloadable by fetching the image and converting to objectURL (to bypass CORS restriction on direct download link)
+      fetch(qrUrl)
+        .then(response => response.blob())
+        .then(blob => {
+          const url = window.URL.createObjectURL(blob);
+          downloadBtn.href = url;
+          downloadBtn.download = `zone-pair-${cleanMac}.png`;
+        })
+        .catch(err => {
+          console.error("CORS fetch failed, using direct URL fallback", err);
+          downloadBtn.href = qrUrl;
+          downloadBtn.target = "_blank";
+        });
+
+      resultArea.style.display = 'flex';
+    }
+  </script>
+</body>
+</html>
